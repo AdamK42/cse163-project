@@ -19,7 +19,7 @@ def get_school_data(df, school_names):
     tuples (year, data number)
     """
     statistic_data = dict()
-    for i in range(1, len(school_names)):
+    for i in range(len(school_names)):
         numbers = df.loc[:, df.columns[i]]
         years = df.loc[:, "Time"]
         school_data = list(zip(years, numbers))
