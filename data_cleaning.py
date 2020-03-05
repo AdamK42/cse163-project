@@ -1,12 +1,13 @@
-def get_school_names(df):
+def get_school_names(df, prefix_len, suffix_len):
     """
-    Takes a school data DataFrame. Returns a list of the schools in the DataFrame.
+    Takes a school data DataFrame, prefix length, and suffix length.
+    Returns a list of the schools in the DataFrame.
     """
     col_names = list(df.columns)
     schools = list()
     for name in col_names[1:]:
         words = name.split()
-        school_list = words[3:len(words) - 2]
+        school_list = words[prefix_len:len(words) - suffix_len]
         school = " ".join(school_list)
         schools.append(school)
     return schools
