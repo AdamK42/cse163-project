@@ -54,3 +54,20 @@ def fill_in_table(df, data, name_of_stat):
     for school in data:
         for year, stat in data[school]:
             df.loc[(year, name_of_stat), school] = stat
+
+
+def is_public_or_private(df, all_names, public_names, private_names):
+    """
+    Takes the DataFrame, and the list of all school names, public school names,
+    and private school names. Flags the school in the DataFrame according to
+    its type. Creates 2 new row indexers to denote this.
+    """
+    for name in all_names:
+        if name in public_names:
+            df.loc["public", name] = 1
+        else:
+            df.loc["public", name] = 0
+        if name in private_names:
+            df.loc["private", name] = 1
+        else:
+            df.loc["private", name] = 0
