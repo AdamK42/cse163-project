@@ -21,7 +21,7 @@ def get_school_data(df, school_names):
     """
     statistic_data = dict()
     for i in range(len(school_names)):
-        numbers = df.loc[:, df.columns[i]]
+        numbers = df.loc[:, df.columns[i + 1]]
         years = df.loc[:, "Time"]
         school_data = list(zip(years, numbers))
         statistic_data[school_names[i]] = school_data
