@@ -30,8 +30,8 @@ def create_dataframe(all_names):
     Year and Statistic.
     """
     years = [i for i in range(2001, 2019)]
-    stats = ["admitted", "applicants", "grad_rate", "population", 
-             "financial_aid", "public", "private"]
+    stats = ["admitted", "applicants", "grad_rate", "population",
+             "financial_aid", "grad_ratio", "competitiveness", "fin_aid_ratio"]
     pairs = list()
     for year in years:
         for stat in stats:
