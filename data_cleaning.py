@@ -13,16 +13,19 @@ def get_school_names(df, prefix_len, suffix_len):
     return schools
 
 
-def get_school_data(df, school_names):
+def get_school_data(df, school_names, stat_name):
     """
-    Takes a school data dataframe and a list of school names. Returns a
-    dictionary where the keys are school names and the values are lists of
-    tuples (year, data number)
+    Takes the raw DataFrame, the list of school names, and the name of the 
+    statistic. Returns a list of dictionaries with keys "School", "Year", and 
+    the given statistic name.
     """
-    statistic_data = dict()
-    for i in range(len(school_names)):
-        numbers = df.loc[:, df.columns[i + 1]]
-        years = df.loc[:, "Time"]
-        school_data = list(zip(years, numbers))
-        statistic_data[school_names[i]] = school_data
-    return statistic_data
+    all_data = list()
+    for i in range(len(df)):
+        year = df.loc[i, "Time"]
+        for j in range(len(school_names)):
+            row = dict()
+            row["Year"] = year
+            row["School"] = school_names[j]
+            row[stat_name] = df.loc[i, df.columns[j + 1]]
+            all_data.append(row)
+    return all_data
