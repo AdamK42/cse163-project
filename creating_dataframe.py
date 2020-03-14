@@ -1,100 +1,73 @@
 import pandas as pd
-import numpy as np
+import data_cleaning as dc
 
 
-def get_all_names(applicants_names, admitted_names, grad_rate_names,
-                  private_names):
+def read_data():
     """
-    Requires the list of applicant, admitted, grad_rate, and private fin_aid
-    data names. Returns a list of all of the names of the schools we have
-    data for.
+    Reads all of the datasets into Pandas DataFrames and returns them all
+    as a tuple.
     """
-    all_names = set()
-    for name in applicants_names:
-        all_names.add(name)
-    for name in admitted_names:
-        all_names.add(name)
-    for name in grad_rate_names:
-        all_names.add(name)
-    for name in private_names:
-        all_names.add(name)
-    all_names = sorted(all_names)
-    return all_names
+    applicants = pd.read_excel("datasets/total_applicants.xlsx", header=2) 
+    admitted = pd.read_excel("datasets/total_admitted.xlsx", header=2)
+    grad_rate = pd.read_excel("datasets/graduation_rates.xlsx", header=2)
+    student_pop = pd.read_excel("datasets/student_population.xlsx", header=2)
+    public_fin = pd.read_excel("datasets/financial_aid_public.xlsx", header=2)
+    private_fin = pd.read_excel("datasets/financial_aid_private.xlsx", header=2)
+    return (applicants, admitted, grad_rate, student_pop, public_fin,
+            private_fin)
 
 
-def create_dataframe(all_names):
+def get_names(dataframes):
     """
-    Takes the list of all of the school names. Creates and returns the
-    DataFrame with the MultiIndex. DataFrame is initialized with values
-    being all zeros. Columns are the school (full) names. Row indexes are
-    Year and Statistic.
+    Takes in the tuple of raw DataFrames. Returns a new tuple with each list of
+    schools retrieved from the raw DataFrames.
     """
-    years = [i for i in range(2001, 2019)]
-    stats = ["admitted", "applicants", "grad_rate", "population",
-             "financial_aid", "grad_ratio", "competitiveness", "fin_aid_ratio"]
-    pairs = list()
-    for year in years:
-        for stat in stats:
-            pairs.append((year, stat))
-    index = pd.MultiIndex.from_tuples(pairs, names=["Year", "Stat"])
-    df = pd.DataFrame(np.zeros((126, 32)), index=index, columns=all_names)
-    return df
+    applicants = dc.get_school_names(dataframes[0])
+    admitted = dc.get_school_names(dataframes[1])
+    grad_rate = dc.get_school_names(dataframes[2])
+    student_pop = dc.get_school_names(dataframes[3])
+    public_fin = dc.get_school_names(dataframes[4])
+    private_fin = dc.get_school_names(dataframes[5])
+    return (applicants, admitted, grad_rate, student_pop, public_fin,
+            private_fin)
 
 
-def fill_in_table(df, data, name_of_stat):
+def get_dictionaries(dataframes, names):
     """
-    Takes in the empty MultiIndex DataFrame, the statistic data dictionary and
-    the name of the statistic that corresponds to the row index name in the
-    DataFrame. Fills the DataFrame with the values from the dictionary.
-
-    After running this function with all datasets, include
-    < df.replace(0, np.nan, inplace=True) >
-    to fill the remaining zeros with NaN.
+    Takes in the tuple of raw DataFrames and the tuple of school names. Returns
+    a tuple of dictionaries for each DataFrame.
     """
-    for school in data:
-        for year, stat in data[school]:
-            df.loc[(year, name_of_stat), school] = stat
+    applicants = dc.get_school_data(dataframes[0], names[0], "applicants")
+    admitted = dc.get_school_data(dataframes[1], names[1], "admitted")
+    grad_rate = dc.get_school_data(dataframes[2], names[2], "grad_rate")
+    student_pop = dc.get_school_data(dataframes[3], names[3], "population")
+    public_fin = dc.get_school_data(dataframes[4], names[4], "fin_aid")
+    private_fin = dc.get_school_data(dataframes[5], names[5], "fin_aid")
+    return (applicants, admitted, grad_rate, student_pop, public_fin,
+            private_fin)
 
 
-def is_public_or_private(df, all_names, public_names, private_names):
+def create_dataframe():
     """
-    Takes the DataFrame, and the list of all school names, public school names,
-    and private school names. Flags the school in the DataFrame according to
-    its type. Creates 2 new row indexers to denote this.
+    Creates and returns a new DataFrame consisting of all of our orignial
+    datasets. 
     """
-    for name in all_names:
-        if name in public_names:
-            df.loc["public", name] = 1
-        else:
-            df.loc["public", name] = 0
-        if name in private_names:
-            df.loc["private", name] = 1
-        else:
-            df.loc["private", name] = 0
+    raw_dataframes = read_data()
+    school_names = get_names(raw_dataframes)
+    dictionaries = get_dictionaries(raw_dataframes, school_names)
 
-def main():
-    grad_rate_dict = get_school_data(grad_rates_df, grad_rate_names, "grad_rate")
-    pop_dict = get_school_data(population_df, pop_names, "population")
-    applicant_dict = get_school_data(applicants_df, applicants_names, "applicants")
-    admitted_dict = get_school_data(admitted_df, admitted_names, "admitted")
-    private_dict = get_school_data(fin_aid_private_df, private_names, "fin_aid")
-    public_dict = get_school_data(fin_aid_public_df, public_names, "fin_aid")
-
-    grad_df = pd.DataFrame(grad_rate_dict)
-    pop_df = pd.DataFrame(pop_dict)
-    applicant_df = pd.DataFrame(applicant_dict)
-    admitted_df = pd.DataFrame(admitted_dict)
-    private_df = pd.DataFrame(private_dict)
-    public_df = pd.DataFrame(public_dict)
+    applicant_df = pd.DataFrame(dictionaries[0])
+    admitted_df = pd.DataFrame(dictionaries[1])
+    grad_df = pd.DataFrame(dictionaries[2])
+    pop_df = pd.DataFrame(dictionaries[3])
+    public_df = pd.DataFrame(dictionaries[4])
+    private_df = pd.DataFrame(dictionaries[5])
 
     df = applicant_df.copy()
     df = df.merge(grad_df, how="outer", on=["School", "Year"])
     df = df.merge(pop_df, how="outer", on=["School", "Year"])
     df = df.merge(admitted_df, how="outer", on=["School", "Year"])
     df = df.merge(private_df, how="outer", on=["School", "Year"])
-    df = df.merge(public_df, how="outer", on=["School", "Year", "fin_aid"])
-
-    df.replace(0, np.nan, inplace=True)
-
-if __name__ == "__main__":
-    main()
+    df = df.merge(public_df, how="outer", on=["School", "Year"],
+                  suffixes=["_private", "_public"])
+    return df
