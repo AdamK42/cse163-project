@@ -7,12 +7,13 @@ def read_data():
     Reads all of the datasets into Pandas DataFrames and returns them all
     as a tuple.
     """
-    applicants = pd.read_excel("datasets/total_applicants.xlsx", header=2) 
+    applicants = pd.read_excel("datasets/total_applicants.xlsx", header=2)
     admitted = pd.read_excel("datasets/total_admitted.xlsx", header=2)
     grad_rate = pd.read_excel("datasets/graduation_rates.xlsx", header=2)
     student_pop = pd.read_excel("datasets/student_population.xlsx", header=2)
     public_fin = pd.read_excel("datasets/financial_aid_public.xlsx", header=2)
-    private_fin = pd.read_excel("datasets/financial_aid_private.xlsx", header=2)
+    private_fin = pd.read_excel("datasets/financial_aid_private.xlsx",
+                                header=2)
     return (applicants, admitted, grad_rate, student_pop, public_fin,
             private_fin)
 
@@ -22,12 +23,12 @@ def get_names(dataframes):
     Takes in the tuple of raw DataFrames. Returns a new tuple with each list of
     schools retrieved from the raw DataFrames.
     """
-    applicants = dc.get_school_names(dataframes[0])
-    admitted = dc.get_school_names(dataframes[1])
-    grad_rate = dc.get_school_names(dataframes[2])
-    student_pop = dc.get_school_names(dataframes[3])
-    public_fin = dc.get_school_names(dataframes[4])
-    private_fin = dc.get_school_names(dataframes[5])
+    applicants = dc.get_school_names(dataframes[0], 3, 2)
+    admitted = dc.get_school_names(dataframes[1], 3, 2)
+    grad_rate = dc.get_school_names(dataframes[2], 2, 6)
+    student_pop = dc.get_school_names(dataframes[3], 2, 6)
+    public_fin = dc.get_school_names(dataframes[4], 8, 33)
+    private_fin = dc.get_school_names(dataframes[5], 8, 21)
     return (applicants, admitted, grad_rate, student_pop, public_fin,
             private_fin)
 
@@ -50,7 +51,7 @@ def get_dictionaries(dataframes, names):
 def create_dataframe():
     """
     Creates and returns a new DataFrame consisting of all of our orignial
-    datasets. 
+    datasets.
     """
     raw_dataframes = read_data()
     school_names = get_names(raw_dataframes)
@@ -71,3 +72,11 @@ def create_dataframe():
     df = df.merge(public_df, how="outer", on=["School", "Year"],
                   suffixes=["_private", "_public"])
     return df
+
+def main():
+    df = create_dataframe()
+    print(df)
+
+
+if __name__ == "__main__":
+    main()

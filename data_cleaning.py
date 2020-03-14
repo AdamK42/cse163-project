@@ -15,8 +15,8 @@ def get_school_names(df, prefix_len, suffix_len):
 
 def get_school_data(df, school_names, stat_name):
     """
-    Takes the raw DataFrame, the list of school names, and the name of the 
-    statistic. Returns a list of dictionaries with keys "School", "Year", and 
+    Takes the raw DataFrame, the list of school names, and the name of the
+    statistic. Returns a list of dictionaries with keys "School", "Year", and
     the given statistic name.
     """
     all_data = list()
