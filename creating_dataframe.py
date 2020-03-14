@@ -72,11 +72,3 @@ def create_dataframe():
     df = df.merge(public_df, how="outer", on=["School", "Year"],
                   suffixes=["_private", "_public"])
     return df
-
-def main():
-    df = create_dataframe()
-    print(df)
-
-
-if __name__ == "__main__":
-    main()
