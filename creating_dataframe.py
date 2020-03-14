@@ -22,12 +22,12 @@ def get_names(dataframes):
     Takes in the tuple of raw DataFrames. Returns a new tuple with each list of
     schools retrieved from the raw DataFrames.
     """
-    applicants = dc.get_school_names(dataframes[0])
-    admitted = dc.get_school_names(dataframes[1])
-    grad_rate = dc.get_school_names(dataframes[2])
-    student_pop = dc.get_school_names(dataframes[3])
-    public_fin = dc.get_school_names(dataframes[4])
-    private_fin = dc.get_school_names(dataframes[5])
+    applicants = dc.get_school_names(dataframes[0], 3, 2)
+    admitted = dc.get_school_names(dataframes[1], 3, 2)
+    grad_rate = dc.get_school_names(dataframes[2], 2, 6)
+    student_pop = dc.get_school_names(dataframes[3], 2, 6)
+    public_fin = dc.get_school_names(dataframes[4], 8, 33)
+    private_fin = dc.get_school_names(dataframes[5], 8, 21)
     return (applicants, admitted, grad_rate, student_pop, public_fin,
             private_fin)
 
