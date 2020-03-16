@@ -7,47 +7,49 @@ from creating_dataframe import create_dataframe, get_names, read_data
 sns.set()
 
 
-def plot_fit_line(data, ax):
+def plot_fit_line(data, ax, column, plot_title):
     xs = data["grad_rate"]
-    ys = data["percent_accepted"]
+    ys = data[column]
     fit = np.polyfit(xs, ys, 1)
 
     x = np.arange(0, 100, 0.1)
     ax.plot(x, fit[0] * x + fit[1], color="#000000")
     ax.set_xbound(0, 100)
     ax.set_ybound(0, 100)
-    
-    print(pearsonr(xs, ys))
+    r_coeff = pearsonr(xs, ys)[0]
+
+    print(plot_title + " Pearson R: " + str(r_coeff))
 
 
 def filter_public_schools(data, public_names):
     is_public = data["School"].isin(public_names)
-    not_satillite = (data["School"] != "University of Washington-Bothell Campus") &\
-                    (data["School"] != "University of Washington-Tacoma Campus")
+    bothell = "University of Washington-Bothell Campus"
+    tacoma = "University of Washington-Tacoma Campus"
+    not_satillite = (data["School"] != bothell) & (data["School"] != tacoma)
     public_data = data[is_public & not_satillite]
-    public_data = filter_sufficient_data(public_data)
     return public_data
 
 
 def filter_private_schools(data, private_names):
     is_private = data["School"].isin(private_names)
     private_data = data[is_private]
-    private_data = filter_sufficient_data(private_data)
     return private_data
 
 
-def filter_sufficient_data(data):
-    filtered_data = data[["Year", "School", "grad_rate", "percent_accepted"]]
+def filter_sufficient_data(data, column, threshold):
+    filtered_data = data[["Year", "School", "grad_rate", column]]
     grad_rate_series = filtered_data.groupby("School")["grad_rate"].count()
-    has_enough_data_s = grad_rate_series >= 15
+    has_enough_data_s = grad_rate_series >= threshold
     names_with_data = grad_rate_series[has_enough_data_s].index
     has_enough_data = filtered_data["School"].isin(names_with_data)
     filtered_data = filtered_data[has_enough_data]
     return filtered_data.dropna()
 
+
 def get_names_lists():
     """
-    Returns a tuple which contains the list of public schools (index 0) and the list of private schools (index 1).
+    Returns a tuple which contains the list of public schools (index 0) and
+    the list of private schools (index 1).
     """
     data = read_data()
     names = get_names(data)
@@ -56,168 +58,122 @@ def get_names_lists():
 
 # Question 0: Competitiveness
 def plot_grad_rate_vs_competitiveness(data):
-    data["percent_accepted"] = (data["admitted"] / data["applicants"]) * 100
-
-    filtered_data = filter_sufficient_data(data)
-    # new_data = data[["Year", "School", "percent_accepted",
-    #                  "grad_rate"]].dropna()
-    # series = new_data.groupby("School")["grad_rate"].count()
-    # has_data_s = series >= 15
-    # names_with_data = series[has_data_s].index
-    # has_data = new_data["School"].isin(names_with_data)
-    # new_data = new_data[has_data]
+    filtered_data = filter_sufficient_data(data, "percent_accepted", 15)
 
     fig, ax = plt.subplots(1, figsize=(10, 10))
     sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
                     data=filtered_data, ax=ax)
     plt.xlabel("Graduation Rate")
     plt.ylabel("Competitiveness")
-    plt.title("Graduation Rate VS Competitiveness- All Universites")
-
-    # getting fit line
-    plot_fit_line(filtered_data, ax)
-    # xs = new_data["grad_rate"]
-    # ys = new_data["percent_accepted"]
-    # fit = np.polyfit(xs, ys, 1)
-
-    # x = np.arange(0, 100, 0.1)
-    # ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    # ax.set_xbound(0, 100)
-    # ax.set_ybound(0, 100)
-
+    title = "Graduation Rate VS Competitiveness- All Universites"
+    plt.title(title)
+    plot_fit_line(filtered_data, ax, "percent_accepted", title)
+    fig.savefig("grad_rate_v_compet_all.png")
 
 
 def plot_grad_rate_vs_competitiveness_public(public_data):
-    #public_data = filter_public_schools(data, public_names)
-
-    #filtered_data = public_data[["Year", "School", "percent_accepted", "grad_rate"]]
-
-    fig, ax = plt.subplots(1, figsize=(10, 10))
-    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School", data=public_data, ax=ax)
+    filtered_data = filter_sufficient_data(public_data, "percent_accepted", 15)
+    fig, ax = plt.subplots(1, figsize=(8, 8))
+    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
+                    data=filtered_data, ax=ax)
     plt.xlabel("Graduation Rate")
     plt.ylabel("Competitiveness")
-    plt.title("Graduation Rate VS Competitiveness- Public Universites")
+    title = "Graduation Rate VS Competitiveness- Public Universites"
+    plt.title(title)
 
-    # getting fit line
-    xs = public_data["grad_rate"]
-    ys = public_data["percent_accepted"]
-    #plot_fit_line(public_data, ax)
-    fit = np.polyfit(xs, ys, 1)
-
-    x = np.arange(0, 100, 0.1)
-    ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    ax.set_xbound(0, 100)
-    ax.set_ybound(0, 100)
-    fig.savefig("test.png")
-
+    plot_fit_line(filtered_data, ax, "percent_accepted", title)
+    fig.savefig("grad_rate_v_compet_pub.png")
 
 
 def plot_grad_rate_vs_competitiveness_private(private_data):
-    # private_data = filter_private_schools(data, private_names)
-    # filtered_data = filter_sufficient_data(private_data)
-
-    fig, ax = plt.subplots(1, figsize=(8,8))
+    filtered_data = filter_sufficient_data(private_data, "percent_accepted",
+                                           15)
+    fig, ax = plt.subplots(1, figsize=(8, 8))
     sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
-                    data=private_data, ax=ax)
+                    data=filtered_data, ax=ax)
     plt.xlabel("Graduation Rate")
     plt.ylabel("Competitiveness")
-    plt.title("Graduation Rate VS Competitiveness- Private Universites")
+    title = "Graduation Rate VS Competitiveness- Private Universites"
+    plt.title(title)
 
-    # getting fit line
-    plot_fit_line(private_data, ax)
-    # xs = filtered_data["grad_rate"]
-    # ys = filtered_data["percent_accepted"]
-    # fit = np.polyfit(xs, ys, 1)
-
-    # x = np.arange(0, 100, 0.1)
-    # ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    # ax.set_xbound(0, 100)
-    # ax.set_ybound(0, 100)
-
+    plot_fit_line(filtered_data, ax, "percent_accepted", title)
+    fig.savefig("grad_rate_v_compet_priv.png")
 
 
 def plot_average_grad_rate_vs_competitive(data):
-    #new_data = data[["Year", "School", "percent_accepted", "grad_rate"]].dropna()
-    filtered_data = filter_sufficient_data(data)
-
-    means = filtered_data.groupby("School")["percent_accepted", "grad_rate"].mean().reset_index().dropna()
-    means = means.drop(0)
-
-    fig, ax = plt.subplots(1, figsize=(8,8))
-    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School", data=means, ax=ax)
-    plt.xlabel("Graduation Rate")
-    plt.ylabel("Competitiveness")
-    plt.title("Average Graduation Rate vs Average Competitiveness")
-
-    plot_fit_line(means, ax)
-    # getting fit line
-    # xs = means["grad_rate"]
-    # ys = means["percent_accepted"]
-    # fit = np.polyfit(xs, ys, 1)
-
-    # x = np.arange(0, 100, 0.1)
-    # ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    # ax.set_xbound(0, 100)
-    # ax.set_ybound(0, 100)
-
-    # print(pearsonr(xs, ys))
-
-
-# you can factor this even more by creating a public_data and 
-# private_data in main, and pass that to this function
-def plot_average_grad_rate_vs_competitive_public(public_data):
-    # public_data = filter_public_schools(data, public_names)
-
-    new_data = public_data[["Year", "School", "percent_accepted", "grad_rate"]]
-    means = new_data.groupby("School")["percent_accepted", "grad_rate"].mean().reset_index()
+    filtered_data = filter_sufficient_data(data, "percent_accepted", 15)
+    means = filtered_data.groupby("School")["percent_accepted",
+                                            "grad_rate"].mean().reset_index()
     
-    fig, ax = plt.subplots(1, figsize=(8,8))
-    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School", data=means, ax=ax)
+    # needed to drop a row that had a tiny grad rate due to missing data
+    means = means.drop(0)
+    means = means.dropna()
+
+    fig, ax = plt.subplots(1, figsize=(8, 8))
+    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
+                    data=means, ax=ax)
     plt.xlabel("Graduation Rate")
     plt.ylabel("Competitiveness")
-    plt.title("Average Graduation Rate vs Average Competitiveness- Public Universities")
+    title = "Average Graduation Rate vs Average Competitiveness- All"\
+            + "Universities"
+    plt.title(title)
 
-    # getting fit line
-    xs = means["grad_rate"]
-    ys = means["percent_accepted"]
-    fit = np.polyfit(xs, ys, 1)
+    plot_fit_line(means, ax, "percent_accepted", title)
+    fig.savefig("av_grad_rate_v_compet_all")
 
-    x = np.arange(0, 100, 0.1)
-    ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    ax.set_xbound(0, 100)
-    ax.set_ybound(0, 100)
 
-    print(pearsonr(xs, ys))
+def plot_average_grad_rate_vs_competitive_public(public_data):
+    filtered_data = filter_sufficient_data(public_data, "percent_accepted", 15)
+    new_data = filtered_data[["Year", "School", "percent_accepted",
+                              "grad_rate"]]
+    means = new_data.groupby("School")["percent_accepted",
+                                       "grad_rate"].mean().reset_index()
+
+    fig, ax = plt.subplots(1, figsize=(8, 8))
+    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
+                    data=means, ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Competitiveness")
+    title = "Average Graduation Rate vs Average Competitiveness- Public"\
+            + "Universities"
+    plt.title(title)
+
+    plot_fit_line(means, ax, "percent_accepted", title)
+    fig.savefig("av_grad_rate_v_compet_pub.png")
 
 
 def plot_average_grad_rate_vs_competitive_private(private_data):
-    means = private_data.groupby("School")["percent_accepted", "grad_rate"].mean().reset_index()
-    fig, ax = plt.subplots(1, figsize=(8,8))
-    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School", data=means, ax=ax)
+    filtered_data = filter_sufficient_data(private_data, "percent_accepted",
+                                           15)
+    means = filtered_data.groupby("School")["percent_accepted",
+                                            "grad_rate"].mean().reset_index()
+
+    fig, ax = plt.subplots(1, figsize=(8, 8))
+    sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
+                    data=means, ax=ax)
     plt.xlabel("Graduation Rate")
     plt.ylabel("Competitiveness")
-    plt.title("Average Graduation Rate vs Average Competitiveness for Private Universities")
+    title = "Average Graduation Rate vs Average Competitiveness- Private"\
+            + "Universities"
+    plt.title(title)
 
-    # getting fit line
-    plot_fit_line(means, ax)
-    # xs = means["grad_rate"]
-    # ys = means["percent_accepted"]
-    # fit = np.polyfit(xs, ys, 1)
-
-    # x = np.arange(0, 100, 0.1)
-    # ax.plot(x, fit[0] * x + fit[1], color="#000000")
-    # ax.set_xbound(0, 100)
-    # ax.set_ybound(0, 100)
-
-    # print(pearsonr(xs, ys))
-
-
-
-
-
+    plot_fit_line(means, ax, "percent_accepted", title)
+    fig.savefig("av_grad_rate_v_compet_priv.png")
 
 
 # Question 1: Financial Aid
+def get_fin_aid_data(data):
+    short_df = data.loc[:, ['Year', 'School', 'population', 'fin_aid_private', 'fin_aid_public', 'grad_rate']]
+    short_df = short_df.dropna(thresh=5)
+    short_df.fillna(0, inplace=True)
+    short_df['fin_aid'] = np.abs(short_df['fin_aid_private']-short_df['fin_aid_public'])
+    short_df['fin_aid_ratio'] = short_df['fin_aid'] / short_df['population'] * 100
+
+    # Some fin_aid_ratios higher than 100, doesn't make sense
+    is_valid_fin_aid_ratio = short_df['fin_aid_ratio'] < 100
+    short_df = short_df[is_valid_fin_aid_ratio]
+    return short_df
+
 
 
 
@@ -226,8 +182,14 @@ def main():
     data = create_dataframe()
     names = get_names_lists()
     public_data = filter_public_schools(data, names[0])
-    #private_data = filter_private_schools(data)
+    private_data = filter_private_schools(data, names[1])
+
+    plot_grad_rate_vs_competitiveness(data)
     plot_grad_rate_vs_competitiveness_public(public_data)
+    plot_grad_rate_vs_competitiveness_private(private_data)
+    plot_average_grad_rate_vs_competitive(data)
+    plot_average_grad_rate_vs_competitive_public(public_data)
+    plot_average_grad_rate_vs_competitive_private(private_data)
 
 
 if __name__ == "__main__":
