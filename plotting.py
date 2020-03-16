@@ -56,6 +56,10 @@ def get_names_lists():
     return (names[4], names[5])
 
 
+def get_mean_data(data, column):
+    return data.groupby("School")[column, "grad_rate"].mean().reset_index()
+
+
 # Question 0: Competitiveness
 def plot_grad_rate_vs_competitiveness(data):
     filtered_data = filter_sufficient_data(data, "percent_accepted", 15)
@@ -102,9 +106,8 @@ def plot_grad_rate_vs_competitiveness_private(private_data):
 
 def plot_average_grad_rate_vs_competitive(data):
     filtered_data = filter_sufficient_data(data, "percent_accepted", 15)
-    means = filtered_data.groupby("School")["percent_accepted",
-                                            "grad_rate"].mean().reset_index()
-    
+    means = get_mean_data(filtered_data, "percent_accepted")
+
     # needed to drop a row that had a tiny grad rate due to missing data
     means = means.drop(0)
     means = means.dropna()
@@ -126,8 +129,7 @@ def plot_average_grad_rate_vs_competitive_public(public_data):
     filtered_data = filter_sufficient_data(public_data, "percent_accepted", 15)
     new_data = filtered_data[["Year", "School", "percent_accepted",
                               "grad_rate"]]
-    means = new_data.groupby("School")["percent_accepted",
-                                       "grad_rate"].mean().reset_index()
+    means = get_mean_data(new_data, "percent_accepted")
 
     fig, ax = plt.subplots(1, figsize=(8, 8))
     sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
@@ -145,8 +147,7 @@ def plot_average_grad_rate_vs_competitive_public(public_data):
 def plot_average_grad_rate_vs_competitive_private(private_data):
     filtered_data = filter_sufficient_data(private_data, "percent_accepted",
                                            15)
-    means = filtered_data.groupby("School")["percent_accepted",
-                                            "grad_rate"].mean().reset_index()
+    means = get_mean_data(filtered_data, "percent_accepted")
 
     fig, ax = plt.subplots(1, figsize=(8, 8))
     sns.scatterplot(x="grad_rate", y="percent_accepted", hue="School",
@@ -163,33 +164,128 @@ def plot_average_grad_rate_vs_competitive_private(private_data):
 
 # Question 1: Financial Aid
 def get_fin_aid_data(data):
-    short_df = data.loc[:, ['Year', 'School', 'population', 'fin_aid_private', 'fin_aid_public', 'grad_rate']]
+    short_df = data[['Year', 'School', 'population', 'fin_aid_private',
+                     'fin_aid_public', 'grad_rate']]
     short_df = short_df.dropna(thresh=5)
     short_df.fillna(0, inplace=True)
-    short_df['fin_aid'] = np.abs(short_df['fin_aid_private']-short_df['fin_aid_public'])
-    short_df['fin_aid_ratio'] = short_df['fin_aid'] / short_df['population'] * 100
+    short_df['fin_aid'] = np.abs(short_df['fin_aid_private']
+                                 - short_df['fin_aid_public'])
+    short_df['fin_aid_ratio'] = (short_df['fin_aid'] /
+                                 short_df['population'] * 100)
 
     # Some fin_aid_ratios higher than 100, doesn't make sense
     is_valid_fin_aid_ratio = short_df['fin_aid_ratio'] < 100
     short_df = short_df[is_valid_fin_aid_ratio]
-    return short_df
+    filtered = filter_sufficient_data(short_df, "fin_aid_ratio", 7)
+    return filtered
 
 
+def plot_grad_rate_vs_financial(data):
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=data, hue='School',
+                    ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Graduation Rate VS Percentage of Students With Financial Aid- "\
+            + "All Universities"
+    plt.title(title)
+    plot_fit_line(data, ax, "fin_aid_ratio", title)
+    fig.savefig("grad_rate_v_fin_all.png")
 
+
+def plot_grad_rate_vs_financial_public(public_data):
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=public_data,
+                    hue='School', ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Graduation Rate VS Percentage of Students With Financial Aid- "\
+            + "Public Universities"
+    plt.title(title)
+    plot_fit_line(public_data, ax, "fin_aid_ratio", title)
+    fig.savefig("grad_rate_v_fin_pub.png")
+
+
+def plot_grad_rate_vs_financial_private(private_data):
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=private_data,
+                    hue='School', ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Graduation Rate VS Percentage of Students With Financial Aid- "\
+            + "Private Universities"
+    plt.title(title)
+    plot_fit_line(private_data, ax, "fin_aid_ratio", title)
+    fig.savefig("grad_rate_v_fin_priv.png")
+
+
+def plot_average_grad_rate_vs_financial(data):
+    means = get_mean_data(data, "fin_aid_ratio")
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=means, hue='School',
+                    ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Average Graduation Rate VS Average Percentage of Students With "\
+            + "Financial Aid- All Universities"
+    plt.title(title)
+    plot_fit_line(means, ax, "fin_aid_ratio", title)
+    fig.savefig("av_grad_rate_v_fin_all.png")
+
+
+def plot_average_grad_rate_vs_financial_public(public_data):
+    means = get_mean_data(public_data, "fin_aid_ratio")
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=means, hue='School',
+                    ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Average Graduation Rate VS Average Percentage of Students With "\
+            + "Financial Aid- Public Universities"
+    plt.title(title)
+    plot_fit_line(public_data, ax, "fin_aid_ratio", title)
+    fig.savefig("av_grad_rate_v_fin_pub.png")
+
+
+def plot_average_grad_rate_vs_financial_private(private_data):
+    means = get_mean_data(private_data, "fin_aid_ratio")
+    fig, ax = plt.subplots(1, figsize=(10, 10))
+    sns.scatterplot(x='grad_rate', y='fin_aid_ratio', data=means, hue='School',
+                    ax=ax)
+    plt.xlabel("Graduation Rate")
+    plt.ylabel("Percentage of Students with Financial Aid")
+    title = "Average Graduation Rate VS Average Percentage of Students With "\
+            + "Financial Aid- Private Universities"
+    plt.title(title)
+    plot_fit_line(means, ax, "fin_aid_ratio", title)
+    fig.savefig("av_grad_rate_v_fin_priv.png")
 
 
 def main():
+    # Getting all of the data
     data = create_dataframe()
     names = get_names_lists()
     public_data = filter_public_schools(data, names[0])
     private_data = filter_private_schools(data, names[1])
+    fin_aid_data = get_fin_aid_data(data)
+    public_fin_aid_data = get_fin_aid_data(public_data)
+    private_fin_aid_data = get_fin_aid_data(private_data)
 
+    # Plots for Question 0
     plot_grad_rate_vs_competitiveness(data)
     plot_grad_rate_vs_competitiveness_public(public_data)
     plot_grad_rate_vs_competitiveness_private(private_data)
     plot_average_grad_rate_vs_competitive(data)
     plot_average_grad_rate_vs_competitive_public(public_data)
     plot_average_grad_rate_vs_competitive_private(private_data)
+
+    # Plots for Question 1
+    plot_grad_rate_vs_financial(fin_aid_data)
+    plot_grad_rate_vs_financial_public(public_fin_aid_data)
+    plot_grad_rate_vs_financial_private(private_fin_aid_data)
+    plot_average_grad_rate_vs_financial(fin_aid_data)
+    plot_average_grad_rate_vs_financial_public(public_fin_aid_data)
+    plot_average_grad_rate_vs_financial_private(private_fin_aid_data)
 
 
 if __name__ == "__main__":
