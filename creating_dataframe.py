@@ -71,4 +71,5 @@ def create_dataframe():
     df = df.merge(private_df, how="outer", on=["School", "Year"])
     df = df.merge(public_df, how="outer", on=["School", "Year"],
                   suffixes=["_private", "_public"])
+    df["percent_accepted"] = (df["admitted"] / df["applicants"]) * 100
     return df
