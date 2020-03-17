@@ -1,3 +1,7 @@
+# Name: Adam Klingler and Kayla Perez
+# Description: Helper functions for cleaning the data for the main dataframe.
+
+
 def get_school_names(df, prefix_len, suffix_len):
     """
     Takes a school data DataFrame, prefix length, and suffix length.

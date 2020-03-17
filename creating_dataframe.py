@@ -1,3 +1,5 @@
+# Name: Adam Klingler and Kayla Perez
+# Description: Helper functions for creating our main dataframe.
 import pandas as pd
 import data_cleaning as dc
 

@@ -1,3 +1,6 @@
+# Name: Adam Klingler and Kayla Perez
+# Description: All the code required to generate our plots. This is the main
+#              program file.
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt

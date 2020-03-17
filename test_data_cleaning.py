@@ -1,3 +1,5 @@
+# Name: Adam Klingler and Kayla Perez
+# Description: Code to test the data cleaning functions.
 from cse163_utils import assert_equals
 import data_cleaning as dc
 import pandas as pd
@@ -8,11 +10,13 @@ def test_get_school_names():
     This function tests the get_school_names function for correct output.
     """
     print("Testing get_school_names")
+    # Test basic functionality
     test_df = pd.read_csv("test.csv")
     received = dc.get_school_names(test_df, 1, 1)
     expected = ["School 1", "School 2", "School 3"]
     assert_equals(expected, received)
 
+    # Test asymmetric prefix / suffix length
     test_df2 = pd.read_csv("test2.csv")
     received = dc.get_school_names(test_df2, 2, 3)
     assert_equals(expected, received)
@@ -23,6 +27,7 @@ def test_get_school_data():
     This function tests the get_school_data function for correct output.
     """
     print("Testing get_school_data")
+    # Test basic functionality
     test_df = pd.read_csv("test3.csv")
     names = dc.get_school_names(test_df, 1, 1)
     stat = "test_stat"
@@ -30,6 +35,7 @@ def test_get_school_data():
     expected = [{"Year": 1, "School": "School 1", stat: 5}]
     assert_equals(expected, received)
 
+    # Test larger dataframe
     test_df2 = pd.read_csv("test.csv")
     names2 = dc.get_school_names(test_df, 1, 1)
     stat = "test_stat"
